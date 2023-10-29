@@ -1,0 +1,253 @@
+﻿@model u20728060_HW03.Models.HomeViewModel
+
+@{
+    ViewBag.Title = "CombinedHIndex";
+}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-latest.ja"></script>
+
+
+
+    @using PagedList.Mvc
+    <style>
+        body {
+            background-image: url('../Content/Images/Library2.jpg')
+        }
+
+        h3 {
+            color: white
+        }
+
+        .ul.pagination {
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul.pagination li {
+            display: inline;
+        }
+
+            ul.pagination li a {
+                color: black;
+                float: left;
+                padding: 8px 16px;
+                text-decoration: none;
+                transition: background-color .3s;
+            }
+
+                ul.pagination li a.active {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+
+                ul.pagination li a:hover:not(.active) {
+                    background-color: #ddd;
+                }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .column {
+            flex: 50%;
+            padding: 5px;
+        }
+
+        table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+            width: 25%;
+          
+        }
+
+        tr:nth-child(even) {
+            background-color: #84a98c;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #d8e2dc;
+        }
+        
+    </style>
+    <body>
+
+
+        <div class="row">
+
+            <div class="col-md-6">
+                <h3>Students</h3>
+                <p>
+                    <a href="#" class="btn btn-primary create-student-link" data-url="@Url.Action("Create", "students")">Create a new student</a>
+                </p>
+
+                <table class="table" style="width:100%">
+                    <tr>
+                        <th>
+                            Name
+                        </th>
+                        <th>
+                            Surname
+                        </th>
+                        <th>
+                            Birth Date
+                        </th>
+                        <th>
+                            Gender
+                        </th>
+                        <th>
+                            Class
+                        </th>
+                        <th>
+                            Point
+                        </th>
+                    </tr>
+                    @foreach (var item in Model.students)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.surname)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.birthdate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.gender)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.@class)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.point)
+                            </td>
+                        </tr>
+                    }
+                </table>
+                <div class="pagination">
+                    @Html.PagedListPager(Model.students, page => Url.Action("CombinedHIndex", new { studentsPage = page }))
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h3>Books</h3>
+                <p>
+                    <a href="#" class="btn btn-primary create-book-link" data-url="@Url.Action("Create", "books")">Create a new book</a>
+                </p>
+
+                <table class="table" style="width:100%">
+                    <tr>
+                        <th>
+                            Name
+                        </th>
+                        <th>
+                            Page Count
+                        </th>
+                        <th>
+                            Point
+                        </th>
+                        <th>
+                            Author
+                        </th>
+                        <th>
+                            Type
+                        </th>
+                        <th>
+                            Status
+                        </th>
+                    </tr>
+                    @foreach (var item in Model.books)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.pagecount)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.point)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.author.name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.type.name)
+                            </td>
+                            <td>
+                                @{
+                                    var today = DateTime.Today;
+                                    var borrow = item.borrows.FirstOrDefault(b =>
+                                        b.takenDate <= today &&
+                                        (b.broughtDate == null || b.broughtDate > today));
+                                    var status = (borrow != null) ? "Out" : "Available";
+                                    @status
+                                }
+                            </td>
+                        </tr>
+                    }
+                </table>
+                <div class="pagination">
+                    @Html.PagedListPager(Model.books, page => Url.Action("CombinedHIndex", new { booksPage = page }))
+                </div>
+            </div>
+        </div>
+        <div id="myModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Create</h5>
+                        @*<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>*@
+                    </div>
+                    <div class="modal-body" id="modal-content">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+
+
+<script>
+    $(function () {
+
+        // Function to handle form submission within the modal, receives the scaffolded views
+        $("#modal-content").on("submit", "form", function (e) {
+            e.preventDefault();
+            var form = $(this);
+            var url = form.attr("action");
+            var formData = form.serialize();
+
+            $.post(url, formData, function (data) {
+                $("#myModal").modal("hide");
+                location.reload();
+            });
+        });
+
+        // Function to handle other links (details, delete, create) within the modal
+        $(" .create-student-link, .create-book-link").click(function (e) {
+            e.preventDefault();
+            var url = $(this).data("url");
+
+            $.get(url, function (data) {
+                $("#modal-content").empty();
+                $("#modal-content").html(data);
+                $("#myModal").modal("show");
+            });
+        });
+    });
+</script>
